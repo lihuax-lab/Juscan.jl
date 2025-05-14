@@ -1,5 +1,7 @@
 # Juscan.jl
 
+![logo](./docs/src/assets/logo.png)
+
 Juscan.jl is a Julia implementation of Scanpy, tailored for single-cell data analysis. Currently in its development (dev) version, the library aims to deliver high-performance, flexible, and extensible tools for preprocessing, dimensionality reduction, clustering, and visualization of single-cell datasets.
 
 ## Features
