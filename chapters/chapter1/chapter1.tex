@@ -1,0 +1,250 @@
+%%% 引言
+
+\section{研究背景}
+\subsection{单细胞数据分析及其在生物学的重要性}
+
+著名细胞学家E. B. Wilson 曾在他的著作 The Cell in Development and Heredity中强调"The key to every biological problem must finally be sought in the cell."，即便是生物化学，分子生物学，遗传学高度发达的今天，我们不但在研究几乎任何生命现象的过程中都离不开细胞的基本单位，而且从细胞的角度进行研究比以往任何时间都有现实意义。
+
+在 Wilson 提出该观点的年代，生物学的研究主要依靠显微镜和简单的生化实验来探讨细胞和亚细胞单位的异质性和功能，这一过程主要依赖形态学进行分析，难以揭示细胞的分子差异。而后出现的群体测序(bulk RNA-seq)，也只能检测细胞群体的平均状态，无法区分单个细胞的差异性。
+
+随着分子生物学的发展，人类逐渐了解了DNA，RNA的结构，并可以通过桑格测序，二代测序方法获取核酸序列信息。现代的单细胞分析技术，使用优化的二代测序技术，以较高的单细胞分辨率，检查单个细胞的核酸序列。以转录组测序（scRNA-seq)为例，首先使用荧光激活细胞分选术(FACS)或微流体设备\upcite{Poulin2016}高通量的快速分离数百至数万个细胞，然后通过与群体测序（bulk RNA-seq）类似的步骤进行测序，即逆转录(RT)、扩增、文库生成和测序\upcite{Li2021}，这里不做展开。
+
+可以看到，单细胞技术使得 Wilson 的观点进入了可操作的时代。单细胞转录组测序（scRNA-seq）、单细胞表观遗传测序（ATAC-seq）、空间转录组学（spatial transcriptomics）等方法，使得现代的研究可以真正在单个细胞的分辨率下探索生物学问题。
+
+对于单细胞测序获得的大规模数据，需要通过生物信息学的分析方法研究。单细胞数据分析包括从数据预处理、降维、聚类、伪时序分析到多组学整合的多个环节，现有许多计算工具来支持这一研究领域。其中，Scanpy\upcite{ScanpySingleCellAnalysis}、Seurat、AnnData 以及 SingleCellExperiment 等成为主流，推动了单细胞数据的标准化并降低了数据分析门槛。
+% 此外，随着计算方法的进步，基于深度学习和多组学整合的工具也不断发展，为单细胞数据分析提供了更多可能性。
+
+\subsection{单细胞数据分析概述}
+
+% 大多数基因仅用于一小部分细胞类型，但是由于 scRNA-seq 实验中通常使用的起始材料量少且测序深度低，某些基因即使表达也会无法检测到。结果是基因表达矩阵中出现大量零值，这是有问题的，因为其中一些零可能表示细胞中实际的低表达或零表达以及测量过程的变化10。区分和适当建模这些观察到的零源的困难是计算分析面临的主要挑战之一。即使是深度测序的数据集也可能有约 50\% 的零，而浅度测序的数据集可能有 99\% 的零。相比之下，在典型的批量 RNA 测序数据集中，不到 20\% 的数据条目是零。
+
+scRNA-seq是一套流行而强大的单细胞检测和分析技术，可以让研究者以单个细胞为单位获取并分析大量细胞整个转录组。但这同时也带来了巨大的数据集，需要使用专业的统计和分析流程。scRNA-seq分析围绕表达矩阵展开，即\lstinline|Anndata.X|，代表了每个基因和细胞中观察到的转录本数量。以表达矩阵为中心进行数学建模设计和搭建一整套统计和分析算法。
+
+\subsubsection{(1)数据预处理}
+
+在开始真正的数据分析之前，为了保证下游分析结果的准确性，需要对数据进行基础的预处理。庞大的表达矩阵中，由于技术精度等问题，优质的数据与噪音，杂质等夹杂在一起。可以通过设定一个数据集特定的 UMI 数量阈值来过滤。确保只保留那些显著偏离背景水平的条形码，从而捕获那些 RNA 含量较低但真实存在的细胞。
+
+但这种初步的筛选无法排除受损和死亡的细胞，此时就需要通过计算一些质量控制指标来识别，这些指标通常包括每个细胞中表达的基因数，每个基因在多少个细胞中被表达，线粒体来源RNA的比例以及无法比对或多重比对的reads比例等。
+
+此外，对于scRNA-seq来说，无论是高通量低深度的10X方法还是低通量高深度的Smart-seq2协议，因为每个细胞的 RNA 量会因细胞周期阶段和其他生物因素而有很大差异，导致从测序实验中获得的有用读数的数量差异显著。为了矫正这种差异，会对整体的scRNA-seq数据计算一个与样本测序升读相关的量，即$size facter$, 然后令整个表达矩阵除以该值。
+
+\subsubsection{(2)高变异基因}
+
+识别高变异基因 (highly variable genes/HVG)是为了通过过滤掉信息量较少的特征来解决高维数据中固有的维数灾难，方便包括降维，聚类，伪时序分析等在内的下游分析，使算法能够专注于最具信息量的特征来描述细胞的异质结构。也因此成为了决定分析效果的重要步骤。
+
+% 原始计数值被用来构建一个对数方差与对数均值之间的拟合曲线，基于这条曲线，系统能精准地识别出那些偏离常规变异模式的基因。
+
+Cell Ranger 方法通过对数归一化后的表达值计算离散度，高离散度的基因被选中作为HVGs，展现出它们在细胞间独特的变异性。而根据seurat的经验，seurat\_v1和seurat\_v2使用归一化表达矩阵在计算离散度，通过不同的离散度计算方法，筛选出表达矩阵中高变异的基因。而seurat\_v3使用原始计数构建出一个对数方差和对数均值之间的拟合曲线，通过曲线精准的识别偏离常规编译模式的基因。
+
+\subsubsection{(3)降维}
+
+减少表达矩阵高维性负面影响的另一种策略是在减少的特征空间上执行降维。其中最常用的方法是PCA，这是一中线性降维方法，能够保留细胞间的欧几里得距离，并在大规模数据集中迅速计算出重要的成分，也就是方差最大的方向。需要保留的维度数是PCA的一个重要参数，取决于数据的复杂度，常见的方法是根据“肘部法则”，绘制每个成分解释的方差比例图，选择曲线上肘部的点筛选出最具代表性的成分。
+
+然而即便如此，单独的几个主成分仍然难以代表scRNA-seq数据的全部表达矩阵，特别是对于复杂、弯曲的流形结（manifold structure），因此，需要依靠可视化算法将多维信息映射到二维平面上。当前最流行的就是Uniform Manifold Approximation and Projection（UMAP），它构建细胞间的近邻网络，来近似模拟数据的拓扑结构，再使用高斯核函数计算邻接概率，如公式\ref{eq:pneighbor}所示，并通过最小化一个交叉熵（Cross Entropy）形式的损失函数即公式\ref{eq:loss}，在低维空间中模拟重现高维结构。
+
+\begin{equation}
+  \label{eq:pneighbor}
+  p_{ij} = \exp\left(-\frac{||x_i - x_j||^2}{\sigma_i}\right)
+\end{equation}
+
+\begin{equation}
+  \label{eq:loss}
+  L = \sum_{i \ne j} \left[ p_{ij} \log \left( \frac{p_{ij}}{q_{ij}} \right) + (1 - p_{ij}) \log \left( \frac{1 - p_{ij}}{1 - q_{ij}} \right) \right]
+\end{equation}
+
+其中$p_{ij}$表示低维空间中点$i$和点$j$由sigmoid-like函数计算得来的相似度。
+
+另一个常见的方法是t-distributed stochastic neighbor embedding（t-SNE），但他在保留大规模数据上的能力不足UMAP。同时需要注意的是，不论是UMAP还是t-SNE都需要用户提供的的超参数，并且运算结果对该参数非常敏感。
+
+\subsubsection{(4)聚类}
+
+细胞聚类是一个把细胞集合划分成子集的过程，每个子集是一个簇，使得簇中的对象彼此相似，但与其他簇中对象彼此相异。
+
+数据聚类等无监督学习随着单细胞测序技术的进步，已经成为识别细胞类型和发现新细胞的主要方法。当前生物信息学针对单细胞RNA序列数据已经开发了多种类型的聚类方法，主要分为k均值聚类，层次聚类，社区发现以及基于密度的聚类\upcite{zhang2023review}。下面的两个表\ref{tab:clusterSummary1}, \ref{tab:clusterSummary2}总结了当前常用的聚类方法的优缺点以及特点。
+
+
+% \begin{longtable}{>{\centering\arraybackslash}p{2cm}
+%                   >{\centering\arraybackslash}p{2.5cm}
+%                   >{\centering\arraybackslash}p{5cm}
+%                   >{\centering\arraybackslash}p{5cm}}
+%   \caption{单细胞 RNA-seq 数据中先进聚类方法概述1}
+%   \label{tab:clusterSummary1} \\
+%   \toprule
+%   \textbf{方法} & \textbf{类型} & \textbf{优点} & \textbf{缺点} \\
+%   \midrule
+%   \endfirsthead
+%   
+%   \toprule
+%   \textbf{方法} & \textbf{类型} & \textbf{优点} & \textbf{缺点} \\
+%   \midrule
+%   \endhead
+%   
+%   \bottomrule
+%   \endfoot
+%   
+%   \scriptsize SAIC      & \scriptsize k-means            & \scriptsize 复杂度低；可扩展至大数据规模       & \scriptsize 对离群值敏感；无法估计聚类数量 \\
+%   \scriptsize RaceID    & \scriptsize k-means            & \scriptsize 对稀有细胞类型敏感；可估计聚类数量 & \scriptsize 不适用于稀有细胞类型 \\
+%   \scriptsize pcaReduce & \scriptsize k-means/层次聚类   & \scriptsize 可提供层次结构的聚类结果           & \scriptsize 不稳定；不适用于大规模数据 \\
+%   \scriptsize SC3       & \scriptsize k-means/层次聚类   & \scriptsize 准确性高；可估计聚类数量           & \scriptsize 复杂度高 \\
+%   \scriptsize CIDR      & \scriptsize 层次聚类           & \scriptsize 对 dropout（数据缺失）敏感         & \scriptsize 复杂度高 \\
+%   \scriptsize BackSPIN  & \scriptsize 层次聚类           & \scriptsize 可同时对基因和细胞进行聚类         & \scriptsize 复杂度高 \\
+%   \scriptsize SIMLR     & \scriptsize 谱聚类（Spectral） & \scriptsize 适用于异质性和噪声数据             & \scriptsize 不适用于大规模数据 \\
+%   \scriptsize SinNLRR   & \scriptsize 谱聚类（Spectral） & \scriptsize 适用于噪声数据                     & \scriptsize 无法估计聚类数量 \\
+%   \scriptsize SCANPY    & \scriptsize Louvain            & \scriptsize 复杂度低；可扩展至大数据规模       & \scriptsize 可能无法识别小的群体 \\
+%   \scriptsize Seurat    & \scriptsize Louvain            & \scriptsize 复杂度低；可扩展至大数据规模       & \scriptsize 可能无法识别小的群体 \\
+%   \scriptsize GiniClust & \scriptsize 基于密度的方法     & \scriptsize 可检测稀有细胞类型                 & \scriptsize 对大型聚类不敏感 \\
+% \end{longtable}
+
+\begin{longtable}{>{\centering\arraybackslash}p{2cm}
+                  >{\centering\arraybackslash}p{2.5cm}
+                  >{\centering\arraybackslash}p{5cm}
+                  >{\centering\arraybackslash}p{5cm}}
+  \caption{单细胞 RNA-seq 数据中先进聚类方法概述1}
+  \label{tab:clusterSummary1} \\
+  \toprule
+  \textbf{方法} & \textbf{类型} & \textbf{优点} & \textbf{缺点} \\
+  \midrule
+  \endfirsthead
+
+  \multicolumn{4}{r}{\textit{续表: 单细胞 RNA-seq 数据中先进聚类方法概述1}} \\
+  \toprule
+  \textbf{方法} & \textbf{类型} & \textbf{优点} & \textbf{缺点} \\
+  \midrule
+  \endhead
+  
+  \bottomrule
+  \multicolumn{4}{r}{\textit{表格接下页}} \\
+  \endfoot
+
+  \bottomrule
+  \endlastfoot
+  
+  SAIC      & k-means            & 复杂度低；可扩展至大数据规模       & 对离群值敏感；无法估计聚类数量 \\
+  RaceID    & k-means            & 对稀有细胞类型敏感；可估计聚类数量 & 不适用于稀有细胞类型 \\
+  pcaReduce & k-means/层次聚类   & 可提供层次结构的聚类结果           & 不稳定；不适用于大规模数据 \\
+  SC3       & k-means/层次聚类   & 准确性高；可估计聚类数量           & 复杂度高 \\
+  CIDR      & 层次聚类           & 对 dropout（数据缺失）敏感         & 复杂度高 \\
+  BackSPIN  & 层次聚类           & 可同时对基因和细胞进行聚类         & 复杂度高 \\
+  SIMLR     & 谱聚类（Spectral） & 适用于异质性和噪声数据             & 不适用于大规模数据 \\
+  SinNLRR   & 谱聚类（Spectral） & 适用于噪声数据                     & 无法估计聚类数量 \\
+  SCANPY    & Louvain            & 复杂度低；可扩展至大数据规模       & 可能无法识别小的群体 \\
+  Seurat    & Louvain            & 复杂度低；可扩展至大数据规模       & 可能无法识别小的群体 \\
+  GiniClust & 基于密度的方法     & 可检测稀有细胞类型                 & 对大型聚类不敏感 \\
+\end{longtable}
+
+\begin{ThreePartTable}
+\begin{longtable}{ccccc}
+\caption{不同聚类方法的特性比较} \label{tab:clustering_methods} \\
+
+\toprule
+\textbf{方法} & \textbf{复杂度} & \textbf{可自动确定聚类数} & \textbf{可扩展性} & \textbf{可检测稀有聚类} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{方法} & \textbf{复杂度} & \textbf{可自动确定聚类数} & \textbf{可扩展性} & \textbf{可检测稀有聚类} \\
+\midrule
+\endhead
+
+\midrule
+\insertTableNotes
+\endfoot
+
+\bottomrule
+\insertTableNotes
+\endlastfoot
+
+SAIC      & $O(N \cdot K \cdot T)$          & \XSolidBrush & \checkmark   & \XSolidBrush \\
+RaceID    & $O(N \cdot K \cdot T)$          & \checkmark   & \checkmark   & \checkmark   \\
+pcaReduce & $O(N \cdot K \cdot T) / O(N^3)$ & \checkmark   & \XSolidBrush & \XSolidBrush \\
+SC3       & $O(N \cdot K \cdot T) / O(N^3)$ & \checkmark   & \XSolidBrush & \XSolidBrush \\
+CIDR      & $O(N^3)$                        & \checkmark   & \checkmark   & \checkmark   \\
+BackSPIN  & $O(N^3)$                        & \XSolidBrush & \XSolidBrush & \checkmark   \\
+SIMLR     & $O(N^3)$                        & \checkmark   & \XSolidBrush & \XSolidBrush \\
+SinNLRR   & $O(N^3)$                        & \checkmark   & \XSolidBrush & \XSolidBrush \\
+SCANPY    & $O(N \log N)$                   & \checkmark   & \checkmark   & \XSolidBrush \\
+Seurat    & $O(N \log N)$                   & \checkmark   & \checkmark   & \XSolidBrush \\
+GiniClust & $O(N \log N)$                   & \XSolidBrush & \checkmark   & \checkmark   \\
+\end{longtable}
+\begin{TableNotes}
+\small
+\item 注：$N$ 表示样本数量，$K$ 表示聚类簇数，$T$ 表示迭代次数。时间复杂度 $O$, 描述算法运行所需的时间，通常取决于输入数据的规模 $n$。
+
+\end{TableNotes}
+
+\end{ThreePartTable}
+
+a.~k均值聚类
+
+k-means是流行的聚类方法中最简单的，需要预定义聚类中心，首先随机初始化每个单元的质心。通过不断迭代来最小化质心与其单元各点之间的欧氏距离的平方和。
+此方法可以随着数据点的数量线性拓展，因此适用于大型数据。但问题在于k-means是一种贪婪算法，容易陷入局部最优解，而且选择较大的k值, 会提高分群的准确度, 但同时会增大过拟合的风险。
+
+b.~社区发现
+
+社区发现算法在社会学和生物学数据这样可以被表示为具有节点和边的图系统中是一种十分流行的聚类算法。
+对于单细胞RNA数据，节点指的是细胞，边权重为细胞之间在表达空间里的亲近度。Louvain是最流行的社区发现算法，广泛用于单细胞RNA序列数据\upcite{blondel2008fast}，常用的Scanpy，Seurat包都提供了Louvain的聚类方法对单细胞进行聚类。
+专注于优化模块度（modularity）函数，揭示图中高度连接的子结构——即“社区”。
+
+Louvain递归地将社区合并为单个节点，即先对原始图进行社区划分，找到局部模块度最优的社区结构，接着，把每一个识别出来的社区看作是图中的一个特殊节点，将整张图重新构造为一个新的压缩图。接下来在压缩图上执行模块度聚类，再次执行模块度优化算法，寻找新的社区划分。Louvain的时间复杂度为$O(N \log N)$，显著低于其他社区发现算法。
+
+\input{chapters/chapter1/Modularity.tex}
+
+如公式\ref{eq:modularity}所示，模块度$H$是一个度量图结构中社区划分优劣的指标，越高表示社区划分越合理。
+
+\subsection{现有单细胞分析平台}
+
+近年来，随着单细胞 RNA 测序（scRNA-seq）技术的快速发展，一系列面向单细胞数据分析的计算工具应运而生，并在科研社区中建立起广泛的用户基础。其中，Scanpy（Python）、Seurat（R） 以及 SingleCellExperiment（R） 是目前应用最为广泛的三个分析平台，各自具备鲜明的设计理念与技术优势。
+
+\textbf{(1)~Seurat}
+
+Seurat\supercite{hao_integrated_2021,hao_dictionary_2024} 是 R 语言中最具代表性的单细胞分析工具之一，自发布以来持续更新，目前已发展至第五版。它采用模块化设计，涵盖从质量控制、归一化、特征选择，到聚类、降维与可视化的完整流程。Seurat 的一大特色是其对复杂生物结构的建模能力，尤其是在样本整合、空间转录组、轨迹推断等方向中具有领先优势。此外，Seurat 提出了如“anchor”、“dictionary learning”等创新性算法，为多组学与参考映射提供了解决方案。
+
+然而，Seurat 的运行效率相对受限，尤其在处理大型数据集时存在内存占用高、执行缓慢的问题。尽管开发团队通过引入 C++ 加速模块进行优化，但其主框架依然依赖于解释性语言 R，在高性能计算方面存在一定局限。
+
+\textbf{(2)~scanpy}
+
+Scanpy\upcite{wolf_scanpy_2018} 是 Python 语言中最主流的单细胞分析工具，构建在 AnnData 数据结构之上，具有良好的可扩展性与模块兼容性。其设计理念强调“轻量级、高性能、面向大数据”，适合处理十万级以上细胞的 scRNA-seq 数据。同时，Scanpy 与 Muon 框架联合提供了对多模态数据（如 RNA+ATAC）的支持\upcite{bredikhinMUONMultimodalOmics2022}。
+
+相比 Seurat，Scanpy 拥有更快的处理速度和更自由的编程能力，但其函数接口相对低层，用户需具备较强的编程背景。更重要的是，Scanpy 在底层实现中大量调用了 Numba、Cython 和 C++ 等异构技术，尽管提升了性能，但也增加了调试难度和系统依赖复杂性。
+
+\textbf{(3)~SingleCellExperiment}
+
+SingleCellExperiment\upcite{amezquita_orchestrating_2020} 并非一个完整分析工具，而是 R/Bioconductor 生态中用于组织单细胞数据的标准数据结构。它以 SummarizedExperiment 为基础，提供统一的容器形式用于存储表达矩阵、元数据和降维结果。该结构被广泛用于支持 Bioconductor 生态中的各类单细胞工具，如 scater、scran、batchelor 等，是构建可复现分析流程的重要基础。
+
+与 Scanpy 和 Seurat 相比，SingleCellExperiment 更注重数据结构的标准化和模块解耦，适合构建灵活、可插拔的分析工作流。然而，它缺乏统一的“主框架”，用户需组合多个包使用。
+
+\section{研究意义与目标}
+\subsection{研究意义}
+
+近年来, 由于python语言的简单易用, 以及其丰富的第三方库, 使得python成为了数据分析领域最热门的语言。因而基于python产生了众多单细胞库, 例如anndata\upcite{bredikhinMUONMultimodalOmics2022}, scanpy\upcite{ScanpySingleCellAnalysis}。
+
+但同时, python在也因为其极低的运行效率饱受诟病。这主要是因为其动态类型, 解释运行和难以多核并发等特性所导致的。
+从传统意义上来说, 较高的运行效率是以牺牲开发效率为代价的, 例如C/C++,
+但是随着编程语言技术的发展, 一种新的编译器框架技术即LLVM(Low-Level Virtual Machine)的出现, 使得计算机可以在不牺牲开发效率的情况下获得较高的运行效率。
+
+Julia\supercite{SponsorJuliaLangGitHub,roeschJuliaBiologists2023}是一门新兴的数据科学语言, 使用LLVM作为其核心编译器基础设施, 它为julia提供了一个高度优化的编译器框架, 使Julia能够将代码编译成高效的机器码, 从而提供接近C和Fortran的运行性能。
+Julia还引入了JIT(Just-In-Time)即时编译技术, 由于LLVM支持即时(JIT)编译, Julia可以在运行时进行动态编译。
+这意味着, Julia是一种动态的强类型语言, 变量一旦被赋予某种类型, 该类型在运算过程中不会改变, 编译器可以在编译期间推断出变量和表达式的具体类型, 同时JIT编译器可以在生成代码时进行高度优化, 避免诸如类型检查或类型转换等操作。
+另外, python的GIL(Global Interpreter Lock)机制使其无法充分利用多核CPU, 而Julia可以充分并方便利用多核CPU, 从而提高运行效率, 特别是对于单细胞处理中质控, 降维, 聚类这些CPU密集型任务。
+
+但在 Julia 生态系统中，单细胞分析工具尚处于初步发展阶段，社区尚未形成完善的支持体系，第三方库的数量和功能也相对有限。
+
+目前，Julia 平台上已有一些小型的单细胞分析库。例如，Muon.jl 是由 Anndata 官方团队开发的 Julia 版本，旨在提供与 Python 中的 Muon 类似的数据结构。然而，Muon.jl 主要专注于数据结构的实现，缺乏完整的分析工具链，用户需要自行实现数据预处理、降维、聚类等分析步骤。
+
+此外，Julia 社区中还存在一些功能较为单一的库，专注于单细胞分析的特定方面。例如，scVI.jl\upcite{scVIjl} 是一个用于拟合变分自编码器（VAE）模型的 Julia 包，基于 Python 的 scvi-tools 实现，主要用于处理计数分布的单细胞数据。该库提供了标准和线性解码的 VAE 模型\upcite{lopez_deep_2018}，支持负二项分布、泊松分布、高斯分布和伯努利分布等生成分布，以及不同的离散参数设置。
+
+还有一些库，如 ASCT.jl\upcite{Yang2023.12.27.573479}，虽然实现了类似 Seurat 的功能，提供了从质量控制、预处理、降维、聚类、标记基因识别到样本整合的完整流程，但并未基于官方的 Muon.jl 结构，而是采用了自定义的数据结构。这种做法可能导致与其他工具的兼容性问题，限制了数据的共享和复用。
+
+综上所述，虽然 Julia 在性能和语法方面具备显著优势，但其在单细胞分析领域的工具生态仍不够成熟，缺乏功能全面、结构统一的分析平台。正因为如此，开发一个基于 Julia 的全栈单细胞分析工具，既是对现有生态的补足，也是推动高性能生物信息学工具发展的关键契机。
+
+随着测序技术的飞速进步，单细胞数据的规模持续膨胀，传统工具在分析效率上的瓶颈逐渐显现。高性能工具的缺位带来了计算资源浪费与能源开销的增加，成为科研中的隐性成本。而 Julia 所带来的运行效率提升，不仅可以缩短实验周期，加快结果反馈，有助于快速迭代实验与建模，也意味着更低的资源消耗，节省服务器运行成本，降低科研预算压力。
+
+因此，构建一个拥有 Scanpy/Seurat 等平台的数据结构规范，同时具备 Julia 本地性能优势的单细胞分析库，不仅能够提升分析效率，更将有助于推动大规模、深层次的生命科学研究向前迈进，为多模态组学、空间转录组、个体化医疗等新兴方向奠定计算基础。
+
+% \section{研究目标与内容}
+\subsection{本项目的目标}
+
+本项目的主要目标是用julia语言实现一个由scanpy启发的数据分析库，用于scRNA-seq的分析，弥补julia生态在单细胞分析上的不足。
+
+在项目稳步推进并完成一个可用版本的前提下 ，利用Julia在数值计算和并行计算方面的优势，保证api的高效性和性能，以实现对大规模数据集的分析工作。API的设计应符合julia官方要求，并尽量与python保持一致，本提供完整的手册与官方文档，以降低用户从scanpy迁移到Juscan.jl的学习成本。另外构建过程采用模块化设计并与Julia生态中的其他工具无缝对接，在提高代码的可读性的同时方便未来的迭代并集成更多高级功能。
+

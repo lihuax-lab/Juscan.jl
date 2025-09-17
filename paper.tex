@@ -1,0 +1,305 @@
+% !TEX TS-program = xelatex
+% !TEX encoding = UTF-8 Unicode
+
+% \documentclass[AutoFakeBold]{LZUThesis}
+\documentclass[AutoFakeBold]{LZUThesis}
+
+\usepackage{wasysym}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{multirow}
+\usepackage{inputenc}
+\usepackage{tikz}
+\usepackage{bbding}
+\usetikzlibrary{arrows.meta, decorations.markings}
+\usepackage{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{pdfpages}
+% \newcommand{\upcite}[1]{\textsuperscript{\textsuperscript{\cite{#1}}}}
+\allowdisplaybreaks[4]
+\usepackage{pdfpages}
+\usepackage[many]{tcolorbox}
+\usepackage{setspace}
+% \setmonofont{MapleMono-NF-CN-Medium}
+\setmonofont{MapleMono-NF-CN-Regular}
+
+% \newtcolorbox[auto counter, number within=section, list inside=listoftables]{fancybox}[2][]{
+\newcommand{\supercite}[1]{\textsuperscript{\textsuperscript{\cite{#1}}}}
+\newtcolorbox[use counter=table]{fancybox}[2][]{
+    title=Code~\thetcbcounter: #2,
+    breakable, left=1cm,
+    label={code:#2},
+    % list entry=code~\thetcbcounter: #2
+    % colback=yellow!10!white, colframe=red!50!black
+}
+
+
+
+
+
+
+
+
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{arrows,shapes}
+\usetikzlibrary{tikzmark}
+\usetikzlibrary{calc}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathtools, nccmath}
+\usepackage{wrapfig}
+\usepackage{comment}
+
+% To generate dummy text
+\usepackage{blindtext}
+
+
+%color
+%\usepackage[dvipsnames]{xcolor}
+% \usepackage{xcolor}
+
+
+%\usepackage[pdftex]{graphicx}
+\usepackage{graphicx}
+% declare the path(s) for graphic files
+%\graphicspath{{../Figures/}}
+
+% extensions so you won't have to specify these with
+% every instance of \includegraphics
+% \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+
+% for custom commands
+\usepackage{xspace}
+
+% table alignment
+\usepackage{array}
+\usepackage{ragged2e}
+\newcolumntype{P}[1]{>{\RaggedRight\hspace{0pt}}p{#1}}
+\newcolumntype{X}[1]{>{\RaggedRight\hspace*{0pt}}p{#1}}
+
+% color box
+\usepackage{tcolorbox}
+
+
+% for tikz
+\usepackage{tikz}
+%\usetikzlibrary{trees}
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees,mindmap}
+% \usepackage{forest}
+\usepackage[edges]{forest}
+\usetikzlibrary{arrows.meta}
+\colorlet{linecol}{black!75}
+\usepackage{xkcdcolors} % xkcd colors
+
+
+% for colorful equation
+\usepackage{tikz}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{arrows,shapes}
+\usetikzlibrary{tikzmark}
+\usetikzlibrary{calc}
+% Commands for Highlighting text -- non tikz method
+\newcommand{\highlight}[2]{\colorbox{#1!17}{$\displaystyle #2$}}
+%\newcommand{\highlight}[2]{\colorbox{#1!17}{$#2$}}
+\newcommand{\highlightdark}[2]{\colorbox{#1!47}{$\displaystyle #2$}}
+
+% my custom colors for shading
+\colorlet{mhpurple}{Plum!80}
+
+
+% Commands for Highlighting text -- non tikz method
+\renewcommand{\highlight}[2]{\colorbox{#1!17}{#2}}
+\renewcommand{\highlightdark}[2]{\colorbox{#1!47}{#2}}
+
+% Some math definitions
+\newcommand{\lap}{\mathrm{Lap}}
+\newcommand{\pr}{\mathrm{Pr}}
+
+\newcommand{\Tset}{\mathcal{T}}
+\newcommand{\Dset}{\mathcal{D}}
+\newcommand{\Rbound}{\widetilde{\mathcal{R}}}
+
+
+
+
+\newcommand{\code}[1]{\lstinline|#1|}
+
+
+
+
+
+\begin{document}
+
+\title{{基于Julia的单细胞}{数据分析平台的设计与实现}}
+
+\entitle{{Design and Implementation of a Julia-based}{Single-Cell Data Analysis Platform}}
+
+\author{李泽华}
+\advisor{赵伟}
+\major{生物信息学}
+\college{生命科学学院}
+\grade{2021级}
+
+
+
+\maketitle
+
+
+
+%==============================%
+% ↓ ↓ ↓ 诚信说明页 授权说明书
+%==============================%
+
+% 1. 可以调整签字的宽度，现在是40
+% 2. 去掉raisebox的相关注释(注意上下大括号对应)，可以改变-5那个数字调整签名和横线的上下位置
+
+% 你的签名，signature.pdf 改为你的签名文件名，
+\mysignature{
+    % \raisebox{-5pt}{
+  \includegraphics[width=40pt]{img/my_signature.jpg}
+    % }
+}
+% 你手写的日期，signature.pdf 改为你的手写的日期文件名
+\mytime{2025年4月27日}
+% \mytime{
+%     % \raisebox{-5pt}{
+    % \includegraphics[width=40pt]{img/time_signature.pdf}
+%     % }
+% }
+% 老师的手写签名，signature.pdf 改为老师的手写签名文件名
+\supervisorsignature{
+    % \raisebox{-5pt}{
+    \includegraphics[width=40pt]{img/teacher_signature.png}
+    % }
+}
+% 老师手写的时间，signature.pdf 改为老师的手写的日期文件名
+\teachertime{2025年4月30日}
+%     % \raisebox{-5pSt}{
+%     \includegraphics[width=40pt]{img/teacher_time_signature.pdf}
+%     % }
+% }
+% 老师手写的成绩
+% \recommendedgrade{
+%     % \raisebox{-5pt}{
+%     \includegraphics[width=40pt]{img/score.pdf}
+%     % }
+% }
+
+\makestatement
+
+%==============================%
+% ↑ ↑ ↑ 诚信说明页 授权说明书
+%==============================%
+
+
+%=====%
+%论文（设计）成绩：注意2007的模板要求，成绩页在最后，2021要求成绩页在摘要前面
+%=====%
+
+\supervisorcomment{导师评价}
+\recommendedgrade{0}
+
+% \committeecomment{优秀}
+
+% \finalgrade{100}
+% 上面这些注释掉可以去掉成绩、评语什么的
+
+
+
+\frontmatter
+
+
+
+%中文摘要
+\ZhAbstract{
+单细胞转录组测序（scRNA-seq）等单细胞技术正以前所未有的速度飞跃发展，推动生命科学进入以细胞为基本单元深入解析的新时代。相较于传统的群体测序（bulk RNA-seq），单细胞测序能够捕捉个体细胞之间的异质性，揭示更为精细的生物学图景。然而，由于数据的高维性、稀疏性及噪声等特性，其分析对计算工具与算法提出了更高要求。
+
+目前，Scanpy（Python）、Seurat（R）等主流分析平台虽功能完备，但在性能方面受限于解释性语言的运行效率。为追求高性能，它们往往依赖 C/C++ 或 Rust 等静态类型语言进行底层加速，这不仅加重了使用负担，也提高了调试的门槛。
+
+本研究提出 Juscan.jl 是一个完全使用 Julia 编写的单细胞数据分析平台，旨在打破性能瓶颈与开发复杂度之间的权衡。基于 Muon.jl 提供的 AnnData 数据结构，Juscan.jl 实现了包括数据预处理、高变基因识别、降维与聚类在内的一站式分析流程。平台设计力求模块化与简洁性，API 风格对标 Scanpy，降低用户迁移成本，并可充分利用 Julia 的 JIT 编译与原生并行机制，实现高性能计算。
+
+实验结果表明，在大规模数据集处理上，Juscan.jl 的效率明显优于 R 语言的 Seurat，虽初版性能略低于 Scanpy，但 Julia 语言本身具备更高的性能上限，随着后续优化有望显著提升。本研究不仅为 Julia 在单细胞领域的应用奠定基础，也为高性能生物数据分析提供了新思路与工具支持。
+}{
+单细胞转录组测序（scRNA-seq）, 生物信息学, Julia, 高性能计算, 数据分析工具
+}
+
+
+%英文摘要
+\EnAbstract{
+Single-cell technologies, such as single-cell RNA sequencing (scRNA-seq), are advancing at an unprecedented pace, ushering life sciences into a new era of analysis at cellular resolution. Compared to traditional bulk RNA sequencing, single-cell approaches enable the capture of cellular heterogeneity, revealing a much more refined landscape of biological processes. However, due to the high dimensionality, sparsity, and inherent noise of such data, their analysis places stringent demands on computational tools and algorithmic frameworks.
+
+Currently, mainstream platforms like Scanpy (Python) and Seurat (R) offer comprehensive functionalities but are limited in performance due to the runtime inefficiencies of interpreted languages. To overcome these limitations, many of these tools rely on static languages such as C/C++ or Rust for backend acceleration—an approach that increases development complexity and raises the barrier for debugging and maintenance.
+
+In this study, we introduce Juscan.jl, a single-cell data analysis platform written entirely in Julia, aiming to break the trade-off between computational performance and development simplicity. Built upon the AnnData structure provided by Muon.jl, Juscan.jl delivers an end-to-end pipeline for single-cell analysis, encompassing data preprocessing, highly variable gene selection, dimensionality reduction, and clustering. The platform adopts a modular and minimalist design, with an API style inspired by Scanpy to ease user migration, while fully leveraging Julia’s just-in-time (JIT) compilation and native parallelism for high-performance computing.
+
+Experimental results show that Juscan.jl significantly outperforms Seurat when processing large-scale datasets. While its current version slightly trails Scanpy in performance, Julia's inherently higher performance ceiling offers promising potential for future optimization. This work not only lays a foundation for Julia’s application in single-cell transcriptomics but also offers new perspectives and tools for high-performance biological data analysis.
+}{
+Single-cell RNA sequencing (scRNA-seq), bioinformatics, Julia, high-performance computing, data analysis tools
+}
+
+%生成目录
+\customcontent
+
+%文章主体
+\mainmatter
+%=================================================================
+
+\chapter{引言}
+\input{chapters/chapter1/chapter1.tex}
+
+\chapter{系统设计与实现}
+\input{chapters/chapter2.tex}
+
+\chapter{实验与评估}
+\input{chapters/chapter3.tex}
+
+\chapter{讨论}
+\input{chapters/chapter4.tex}
+
+%=================================================================
+%论文后部
+\backmatter
+
+
+%=======%
+%引入参考文献文件
+%=======%
+\bibdatabase{bib/database}%bib文件名称 仅修改bib/ 后部分
+\printbib
+\nocite{*} %显示数据库中有的，但是正文没有引用的文献
+
+\Appendix
+
+\section{Juscan.jl源代码与文档}
+
+源码见Github仓库: \href{https://github.com/zehua0417/Juscan.jl.git}{https://github.com/zehua0417/Juscan.jl.git}
+
+其他更多使用细节见文档：\href{https://zehua0417.github.io/Juscan.jl/}{https://zehua0417.github.io/Juscan.jl/}
+
+\section{性能检测}
+
+\showcode{julia}{Juscan.jl速度检测}{../vs/src/sc.jl}
+\showcode{R}{Seurat速度检测}{../vs/src/sc.R}
+\showcode{python}{scanpy速度检测}{../vs/src/sc.py}
+
+\Thanks
+
+本论文的完成离不开多方的关心与支持，在此谨致以诚挚的感谢。
+
+首先，衷心感谢我的导师赵伟老师在课题选题、研究设计与论文撰写过程中给予的悉心指导与宝贵建议。赵老师严谨治学的态度、敏锐的问题意识以及持续探索的精神，为本研究的顺利推进提供了重要保障。
+
+感谢生命科学学院为我提供了良好的学习与科研环境，系统的课程设置与丰富的学术资源，为我的专业成长和科研训练打下了坚实基础。感谢各位授课教师在本科阶段的辛勤教学和耐心指导，使我得以不断夯实专业知识，拓展学术视野。
+
+感谢我的家人长期以来给予的理解与支持，是他们无声的鼓励与陪伴，使我能够专注于学业，克服困难，坚定前行。
+
+同时，感谢开源社区与相关软件项目开发者的无私贡献，特别是Muon.jl、Scanpy等项目，为本研究提供了重要的参考与技术支持。
+
+最后，感谢在项目开发、测试与讨论过程中给予我帮助与建议的同学与朋友们。你们的支持使本项目不断完善，持续前进。
+
+\Grade
+
+\end{document}

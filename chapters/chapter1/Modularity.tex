@@ -1,0 +1,33 @@
+% \begin{equation}
+% H=\frac{1}{2m}\sum_c\left[ e_c-\gamma\frac{k_c^2}{2m} \right]
+% \end{equation}
+% 其中m为总边数, $e_c$为社区C内的边数, $k_c$为社区C中节点数的和, $\gamma$为参数分辨率
+
+\begin{figure}[h]
+    \vspace*{1.8\baselineskip}
+    \begin{equation}
+        \label{eq:modularity}
+        \hspace*{-6em}
+        H=\frac{1}{2\tikzmarknode{js}{\highlight{red}{m}}}\sum_{\tikzmarknode{lmax}{\highlight{OliveGreen}c}}\left[ \tikzmarknode{ec}{\highlight{purple}{$e_c$}}-\tikzmarknode{ga}{\highlight{NavyBlue}{$\gamma$}}\frac{\tikzmarknode{kc}{\highlight{bittersweet}{$k_c$}}^2}{2\tikzmarknode{jd}{\highlight{red}{m}}} \right]
+        % H=\frac{1}{2m}\sum_c\left[ e_c-\gamma\frac{k_c^2}{2m} \right]
+    \end{equation}
+    \vspace*{0.4\baselineskip}
+    \begin{tikzpicture}[overlay,remember picture,>=stealth,nodes={align=left,inner ysep=1pt},<-]
+        % m
+        \node[anchor=north,color=red!57, yshift=-1.2em] (jtext) at ($(js.south)!0.5!(jd.south)$) {\textsf{\footnotesize total number of edges}};
+        \draw[<->,color=red!57] (js.south) |- (jtext.north) -| (jd.south);
+        % c
+        \path (lmax.north) ++ (-2.7,-2.3em) node[anchor=north,color=xkcdHunterGreen!85] (lmaxtext){\textsf{\footnotesize total number of nodes}};
+        \draw [color=xkcdHunterGreen](lmax.south) |- ([xshift=-0.4ex,color=xkcdHunterGreen]lmaxtext.south west);
+        % ec
+        \path (ec.north) ++ (0,1.8em) node[anchor=south east,color=Plum!85] (ntext){\textsf{\footnotesize intra-community edge count of $C$}};
+        \draw [color=Plum](ec.north) |- ([xshift=-0.3ex,color=Plum]ntext.south west);
+        % gamma
+        \path (ga.north) ++ (0,4em) node[anchor=north west,color=NavyBlue!85] (mitext){\textsf{\footnotesize resolution parameter}};
+        \draw [color=NavyBlue](ga.north) |- ([xshift=-0.3ex,color=NavyBlue]mitext.south east);
+        % kc
+        \path (kc.north) ++ (0,1.9em) node[anchor=north west,color=Bittersweet!85] (lijtext){\textsf{\footnotesize total degree of nodes in $C$}};
+        \draw [color=Bittersweet](kc.north) |- ([xshift=-0.3ex,color=Bittersweet]lijtext.south east);
+    \end{tikzpicture}
+  % \end{minipage}
+\end{figure}

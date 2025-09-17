@@ -1,0 +1,52 @@
+# ========= LaTeX Auxiliary Files =========
+*.aux
+*.bbl
+*.blg
+*.brf
+*.lof
+*.log
+*.lot
+*.out
+*.toc
+*.thm
+*.pyg
+
+# ========= Latexmk/Build Tools =========
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# ========= Intermediate PDF/DOC Files =========
+# output/*.pdf
+output/*.docx
+chapters/**/output/*.pdf
+
+# ========= Log Files =========
+log/
+chapters/**/log/
+
+# ========= Temporary Files =========
+temp/
+chapters/**/temp/
+
+# ========= OS/Editor Junk =========
+.DS_Store
+*.swp
+*.swo
+*~
+
+# ========= Manual Exclusion (keep these) =========
+!.gitignore
+!*.tex
+!*.bib
+!*.bst
+!*.cls
+!*.sty
+!img/
+!bib/
+!chapters/
+
+
+# ==== Signatures ====
+img/my_signature.png
+img/teacher_signature.png
